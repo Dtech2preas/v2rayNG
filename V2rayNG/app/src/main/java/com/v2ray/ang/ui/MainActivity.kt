@@ -11,6 +11,7 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.KeyEvent
+import android.widget.Toast
 import android.view.Menu
 import android.view.MenuItem
 import androidx.activity.OnBackPressedCallback
@@ -249,10 +250,18 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
 
     private fun startV2Ray() {
         if (MmkvManager.getSelectServer().isNullOrEmpty()) {
-            toast(R.string.title_file_chooser)
-            return
+            if (mainViewModel.serversCache.isNotEmpty()) {
+                val firstGuid = mainViewModel.serversCache[0].guid
+                MmkvManager.setSelectServer(firstGuid)
+                adapter.notifyDataSetChanged()
+            } else {
+                toast(R.string.title_file_chooser)
+                return
+            }
         }
         val sni = binding.etCustomSni.text.toString()
+        Toast.makeText(this, "Injecting SNI: " + sni, Toast.LENGTH_LONG).show()
+
         if (sni.isNotEmpty()) {
             com.v2ray.ang.handler.V2rayConfigManager.overrideSni = sni
             Log.d(AppConfig.TAG, "Overriding SNI with: $sni")
