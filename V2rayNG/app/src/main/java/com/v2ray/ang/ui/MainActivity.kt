@@ -252,6 +252,13 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
             toast(R.string.title_file_chooser)
             return
         }
+        val sni = binding.etCustomSni.text.toString()
+        if (sni.isNotEmpty()) {
+            com.v2ray.ang.handler.V2rayConfigManager.overrideSni = sni
+            Log.d(AppConfig.TAG, "Overriding SNI with: $sni")
+        } else {
+            com.v2ray.ang.handler.V2rayConfigManager.overrideSni = null
+        }
         V2RayServiceManager.startVService(this)
     }
 

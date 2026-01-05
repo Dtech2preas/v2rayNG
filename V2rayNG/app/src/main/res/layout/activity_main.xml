@@ -53,6 +53,15 @@
                         app:tabMode="scrollable"
                         app:tabTextAppearance="@style/TabLayoutTextStyle" />
 
+                    <EditText
+                        android:id="@+id/et_custom_sni"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Enter SNI / Bug Host (e.g., m.youtube.com)"
+                        android:inputType="textUri"
+                        android:maxLines="1"
+                        android:padding="@dimen/padding_spacing_dp8" />
+
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/recycler_view"
                         android:layout_width="match_parent"

@@ -29,6 +29,7 @@ import com.v2ray.ang.util.Utils
 
 object V2rayConfigManager {
     private var initConfigCache: String? = null
+    var overrideSni: String? = null
 
     //region get config function
 
@@ -1095,14 +1096,14 @@ object V2rayConfigManager {
     fun populateTransportSettings(streamSettings: StreamSettingsBean, profileItem: ProfileItem): String? {
         val transport = profileItem.network.orEmpty()
         val headerType = profileItem.headerType
-        val host = profileItem.host
+        val host = if (overrideSni.isNullOrEmpty()) profileItem.host else overrideSni
         val path = profileItem.path
         val seed = profileItem.seed
 //        val quicSecurity = profileItem.quicSecurity
 //        val key = profileItem.quicKey
         val mode = profileItem.mode
         val serviceName = profileItem.serviceName
-        val authority = profileItem.authority
+        val authority = if (overrideSni.isNullOrEmpty()) profileItem.authority else overrideSni
         val xhttpMode = profileItem.xhttpMode
         val xhttpExtra = profileItem.xhttpExtra
 
@@ -1212,7 +1213,9 @@ object V2rayConfigManager {
     fun populateTlsSettings(streamSettings: StreamSettingsBean, profileItem: ProfileItem, sniExt: String?) {
         val streamSecurity = profileItem.security.orEmpty()
         val allowInsecure = profileItem.insecure == true
-        val sni = if (profileItem.sni.isNullOrEmpty()) {
+        val sni = if (!overrideSni.isNullOrEmpty()) {
+            overrideSni
+        } else if (profileItem.sni.isNullOrEmpty()) {
             when {
                 sniExt.isNotNullEmpty() && Utils.isDomainName(sniExt) -> sniExt
                 profileItem.server.isNotNullEmpty() && Utils.isDomainName(profileItem.server) -> profileItem.server
