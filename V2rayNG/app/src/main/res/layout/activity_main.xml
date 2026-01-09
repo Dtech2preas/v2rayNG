@@ -1,159 +1,265 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/colorBlack"
+    android:fitsSystemWindows="true">
 
-    <LinearLayout
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:id="@+id/main_content"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:fitsSystemWindows="true"
-        android:orientation="vertical">
+        android:layout_height="match_parent">
 
-        <com.google.android.material.appbar.AppBarLayout
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:visibility="gone">
+            android:layout_height="match_parent"
+            android:orientation="vertical">
 
-            <androidx.appcompat.widget.Toolbar
-                android:id="@+id/toolbar"
+            <!-- Top Header -->
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize" />
+                android:layout_height="80dp"
+                android:background="@drawable/bg_top_bar"
+                android:paddingStart="24dp"
+                android:paddingEnd="24dp"
+                android:paddingTop="16dp"
+                android:elevation="8dp">
 
-        </com.google.android.material.appbar.AppBarLayout>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="D-TECH VPN"
+                    android:textColor="@color/colorTextPrimary"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"/>
 
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
+                <ImageView
+                    android:id="@+id/iv_settings"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@android:drawable/ic_menu_preferences"
+                    app:tint="@color/colorTextPrimary"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"/>
 
-            <androidx.coordinatorlayout.widget.CoordinatorLayout
-                android:id="@+id/main_content"
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- Traffic Dashboard -->
+            <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="@android:color/transparent">
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical">
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_dashboard_card"
+                    android:orientation="vertical"
+                    android:padding="20dp">
 
-                    <com.google.android.material.progressindicator.LinearProgressIndicator
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="LIVE TRAFFIC"
+                        android:textColor="@color/colorTextSecondary"
+                        android:textSize="12sp"
+                        android:letterSpacing="0.1"
+                        android:layout_marginBottom="16dp"/>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <!-- Upload -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="UPLOAD"
+                                android:textColor="@color/colorElectricBlue"
+                                android:textSize="12sp"
+                                android:textStyle="bold"/>
+                            <TextView
+                                android:id="@+id/tv_upload_speed"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0 KB/s"
+                                android:textColor="@color/colorTextPrimary"
+                                android:textSize="20sp"
+                                android:fontFamily="sans-serif-medium"/>
+                        </LinearLayout>
+
+                        <!-- Download -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:gravity="end">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="DOWNLOAD"
+                                android:textColor="@color/colorDeepPurple"
+                                android:textSize="12sp"
+                                android:textStyle="bold"/>
+                            <TextView
+                                android:id="@+id/tv_download_speed"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0 KB/s"
+                                android:textColor="@color/colorTextPrimary"
+                                android:textSize="20sp"
+                                android:fontFamily="sans-serif-medium"/>
+                        </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Buttons Row (Import/Test) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:layout_marginBottom="8dp">
+
+                <Button
+                    android:id="@+id/btn_import_config"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="IMPORT CONFIG"
+                    android:textColor="@color/colorTextPrimary"
+                    android:backgroundTint="#333333"
+                    android:layout_marginEnd="8dp"/>
+
+                <LinearLayout
+                    android:id="@+id/layout_test"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_server_card"
+                    android:gravity="center"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                     <TextView
+                        android:id="@+id/tv_test_state"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Ping: --"
+                        android:textColor="@color/colorPing"
+                        android:textSize="14sp"
+                        android:textStyle="bold"/>
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- Hidden Elements (Logic compatibility) -->
+             <com.google.android.material.tabs.TabLayout
+                        android:id="@+id/tab_group"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:visibility="gone"/>
+             <com.google.android.material.progressindicator.LinearProgressIndicator
                         android:id="@+id/pb_waiting"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:indeterminate="true"
                         android:visibility="invisible"
-                        app:indicatorColor="@color/color_fab_active" />
+                        app:indicatorColor="@color/colorElectricBlue" />
 
-                    <Button
-                        android:id="@+id/btn_import_config"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Import VLESS Config"
-                        android:layout_margin="16dp"/>
+            <!-- Server List -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recycler_view"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:padding="8dp"
+                android:clipToPadding="false"
+                android:scrollbars="vertical" />
 
-                    <com.google.android.material.tabs.TabLayout
-                        android:id="@+id/tab_group"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:padding="@dimen/padding_spacing_dp8"
-                        app:tabIndicatorFullWidth="false"
-                        app:tabMode="scrollable"
-                        app:tabTextAppearance="@style/TabLayoutTextStyle"
-                        android:visibility="gone"/>
+             <!-- Bottom Spacer for Button -->
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="120dp"/>
 
-                    <EditText
-                        android:id="@+id/et_custom_sni"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="Enter SNI / Bug Host (e.g., m.youtube.com)"
-                        android:inputType="textUri"
-                        android:maxLines="1"
-                        android:padding="@dimen/padding_spacing_dp8"
-                        android:visibility="gone"/>
+        </LinearLayout>
 
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/recycler_view"
-                        android:layout_width="match_parent"
-                        android:layout_height="0dp"
-                        android:layout_weight="1"
-                        android:nextFocusRight="@+id/fab"
-                        android:scrollbars="vertical" />
+        <!-- Floating Connect Button Container -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:gravity="center"
+            android:paddingBottom="32dp">
 
-                    <LinearLayout
-                        android:id="@+id/layout_test"
-                        android:layout_width="match_parent"
-                        android:layout_height="@dimen/view_height_dp64"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:nextFocusLeft="@+id/recycler_view"
-                        android:nextFocusRight="@+id/fab"
-                        android:orientation="vertical">
+            <!-- Pulse Effect View -->
+            <View
+                android:id="@+id/view_pulse"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:background="@drawable/ic_pulse"
+                android:visibility="invisible"
+                android:layout_centerInParent="true"/>
 
-                        <View
-                            android:layout_width="wrap_content"
-                            android:layout_height="1dp"
-                            android:background="@color/divider_color_light" />
+            <!-- Main Button -->
+            <FrameLayout
+                android:id="@+id/btn_connect_container"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_centerInParent="true"
+                android:clickable="true"
+                android:focusable="true">
 
-                        <TextView
-                            android:id="@+id/tv_test_state"
-                            android:layout_width="wrap_content"
-                            android:layout_height="match_parent"
-                            android:gravity="start|center"
-                            android:maxLines="2"
-                            android:minLines="1"
-                            android:paddingStart="@dimen/padding_spacing_dp16"
-                            android:text="@string/connection_test_pending"
-                            android:textAppearance="@style/TextAppearance.AppCompat.Small" />
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_connect_button"/>
 
-                    </LinearLayout>
+                <ImageView
+                    android:id="@+id/iv_connect_icon"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center"
+                    android:src="@android:drawable/ic_lock_power_off"
+                    app:tint="#FFFFFF"/>
+            </FrameLayout>
 
-                    <Button
-                        android:id="@+id/btn_connect"
-                        android:layout_width="match_parent"
-                        android:layout_height="60dp"
-                        android:text="CONNECT"
-                        android:layout_margin="16dp"
-                        android:textSize="18sp"
-                        android:textStyle="bold"/>
+            <!-- Hidden original button for logic ref compatibility if needed, but we will use the new one -->
+            <Button
+                 android:id="@+id/btn_connect"
+                 android:layout_width="0dp"
+                 android:layout_height="0dp"
+                 android:visibility="gone"/>
 
-                </LinearLayout>
-
-                <FrameLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="bottom|end"
-                    android:layout_marginEnd="@dimen/padding_spacing_dp16"
-                    android:visibility="gone">
-
-                    <com.google.android.material.floatingactionbutton.FloatingActionButton
-                        android:id="@+id/fab"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="bottom|end"
-                        android:layout_marginBottom="@dimen/view_height_dp36"
-                        android:clickable="true"
-                        android:contentDescription="@string/tasker_start_service"
-                        android:focusable="true"
-                        android:nextFocusLeft="@+id/layout_test"
-                        android:src="@drawable/ic_play_24dp"
-                        app:layout_anchorGravity="bottom|right|end" />
-
-                </FrameLayout>
-            </androidx.coordinatorlayout.widget.CoordinatorLayout>
         </RelativeLayout>
-    </LinearLayout>
 
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+    <!-- Navigation View (Hidden but kept for safety) -->
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/nav_view"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        app:headerLayout="@layout/nav_header"
-        app:itemIconTint="@color/colorAccent"
-        app:menu="@menu/menu_drawer"
-        android:visibility="gone">
-
-    </com.google.android.material.navigation.NavigationView>
+        android:visibility="gone"/>
 
 </androidx.drawerlayout.widget.DrawerLayout>

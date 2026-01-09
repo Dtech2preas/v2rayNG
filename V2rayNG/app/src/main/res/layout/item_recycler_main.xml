@@ -6,14 +6,15 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:gravity="center_vertical"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:layout_marginBottom="8dp">
 
     <LinearLayout
         android:id="@+id/info_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:background="?attr/selectableItemBackground"
+        android:background="@drawable/bg_server_card"
         android:clickable="true"
         android:focusable="true"
         android:gravity="center_vertical"
@@ -24,7 +25,8 @@
             android:id="@+id/layout_indicator"
             android:layout_width="4dp"
             android:layout_height="match_parent"
-            android:layout_marginEnd="8dp"
+            android:layout_marginEnd="12dp"
+            android:background="@color/colorElectricBlue"
             android:orientation="vertical" />
 
         <TextView
@@ -36,6 +38,8 @@
             android:minLines="1"
             android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
             android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/colorTextPrimary"
             tools:text="Config Name" />
 
         <TextView
@@ -46,6 +50,7 @@
             android:textAppearance="@style/TextAppearance.AppCompat.Small"
             android:textColor="@color/colorPing"
             android:textSize="14sp"
+            android:textStyle="bold"
             tools:text="214ms" />
 
     </LinearLayout>
