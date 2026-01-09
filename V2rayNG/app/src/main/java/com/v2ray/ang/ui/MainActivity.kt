@@ -246,8 +246,6 @@ class MainActivity : BaseActivity() {
                 // If it is total bytes, we need to diff it.
                 // Let's implement a simple diff mechanism.
 
-                val upSpeed = Utils.getEditableSpeedString(upload) // Assuming Utils has speed formatter, or we make one.
-                // Actually Utils.getEditableSpeedString doesn't exist in memory.
 
                 withContext(Dispatchers.Main) {
                      updateTrafficUI(upload, download)
