@@ -80,12 +80,7 @@ object MmkvManager {
         return if (json.isNullOrBlank()) {
             mutableListOf()
         } else {
-            try {
-                JsonUtil.fromJson(json, Array<String>::class.java)?.toMutableList() ?: mutableListOf()
-            } catch (e: Exception) {
-                e.printStackTrace()
-                mutableListOf()
-            }
+            JsonUtil.fromJson(json, Array<String>::class.java)?.toMutableList() ?: mutableListOf()
         }
     }
 
@@ -103,12 +98,7 @@ object MmkvManager {
         if (json.isNullOrBlank()) {
             return null
         }
-        return try {
-            JsonUtil.fromJson(json, ProfileItem::class.java)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
-        }
+        return JsonUtil.fromJson(json, ProfileItem::class.java)
     }
 
 //    fun decodeProfileConfig(guid: String): ProfileLiteItem? {

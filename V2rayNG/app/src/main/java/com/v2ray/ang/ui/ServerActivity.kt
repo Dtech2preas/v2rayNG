@@ -154,7 +154,6 @@ class ServerActivity : BaseActivity() {
             EConfigType.TROJAN -> setContentView(R.layout.activity_server_trojan)
             EConfigType.WIREGUARD -> setContentView(R.layout.activity_server_wireguard)
             EConfigType.HYSTERIA2 -> setContentView(R.layout.activity_server_hysteria2)
-            EConfigType.SSH -> setContentView(R.layout.activity_server_socks)
             EConfigType.POLICYGROUP -> return
         }
         sp_network?.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
@@ -338,7 +337,7 @@ class ServerActivity : BaseActivity() {
         et_port.text = Utils.getEditable(config.serverPort ?: DEFAULT_PORT.toString())
         et_id.text = Utils.getEditable(config.password.orEmpty())
 
-        if (config.configType == EConfigType.SOCKS || config.configType == EConfigType.HTTP || config.configType == EConfigType.SSH) {
+        if (config.configType == EConfigType.SOCKS || config.configType == EConfigType.HTTP) {
             et_security?.text = Utils.getEditable(config.username.orEmpty())
         } else if (config.configType == EConfigType.VLESS) {
             et_security?.text = Utils.getEditable(config.method.orEmpty())
@@ -510,7 +509,7 @@ class ServerActivity : BaseActivity() {
             config.flow = flows[sp_flow?.selectedItemPosition ?: 0]
         } else if (config.configType == EConfigType.SHADOWSOCKS) {
             config.method = shadowsocksSecuritys[sp_security?.selectedItemPosition ?: 0]
-        } else if (config.configType == EConfigType.SOCKS || config.configType == EConfigType.HTTP || config.configType == EConfigType.SSH) {
+        } else if (config.configType == EConfigType.SOCKS || config.configType == EConfigType.HTTP) {
             if (!TextUtils.isEmpty(et_security?.text) || !TextUtils.isEmpty(et_id.text)) {
                 config.username = et_security?.text.toString().trim()
             }

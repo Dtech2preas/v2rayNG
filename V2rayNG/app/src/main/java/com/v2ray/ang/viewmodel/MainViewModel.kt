@@ -150,8 +150,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun updateCache() {
         serversCache.clear()
         for (guid in serverList) {
-            try {
-                var profile = MmkvManager.decodeServerConfig(guid) ?: continue
+            var profile = MmkvManager.decodeServerConfig(guid) ?: continue
 //            var profile = MmkvManager.decodeProfileConfig(guid)
 //            if (profile == null) {
 //                val config = MmkvManager.decodeServerConfig(guid) ?: continue
@@ -165,16 +164,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 //                MmkvManager.encodeServerConfig(guid, config)
 //            }
 
-                if (subscriptionId.isNotEmpty() && subscriptionId != profile.subscriptionId) {
-                    continue
-                }
-
-                if (keywordFilter.isEmpty() || profile.remarks.lowercase().contains(keywordFilter.lowercase())) {
-                    serversCache.add(ServersCache(guid, profile))
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
+            if (subscriptionId.isNotEmpty() && subscriptionId != profile.subscriptionId) {
                 continue
+            }
+
+            if (keywordFilter.isEmpty() || profile.remarks.lowercase().contains(keywordFilter.lowercase())) {
+                serversCache.add(ServersCache(guid, profile))
             }
         }
     }

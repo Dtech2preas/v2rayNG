@@ -15,7 +15,6 @@ enum class EConfigType(val value: Int, val protocolScheme: String) {
     //    TUIC(8, AppConfig.TUIC),
     HYSTERIA2(9, AppConfig.HYSTERIA2),
     HTTP(10, AppConfig.HTTP),
-    SSH(11, AppConfig.SSH),
     POLICYGROUP (101, AppConfig.CUSTOM);
 
     companion object {
