@@ -132,6 +132,11 @@ class MainActivity : BaseActivity() {
              startActivity(Intent(this, SettingsActivity::class.java))
         }
 
+        // Refresh (Universal Update) logic
+        binding.ivRefresh.setOnClickListener {
+            mainViewModel.startUniversalUpdate()
+        }
+
         binding.recyclerView.setHasFixedSize(true)
         binding.recyclerView.layoutManager = GridLayoutManager(this, 1)
         binding.recyclerView.adapter = adapter
@@ -146,6 +151,9 @@ class MainActivity : BaseActivity() {
                 requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
         }
+
+        // Check for first run universal update
+        mainViewModel.checkFirstRun()
     }
 
     private fun handleConnectClick() {
@@ -257,6 +265,14 @@ class MainActivity : BaseActivity() {
                  binding.viewPulse.clearAnimation()
                  binding.viewPulse.visibility = View.INVISIBLE
              }
+        }
+        mainViewModel.universalUpdateStatus.observe(this) { status ->
+            if (status.isNullOrEmpty()) {
+                binding.tvUniversalStatus.visibility = View.GONE
+            } else {
+                binding.tvUniversalStatus.visibility = View.VISIBLE
+                binding.tvUniversalStatus.text = status
+            }
         }
         mainViewModel.startListenBroadcast()
         mainViewModel.initAssets(assets)

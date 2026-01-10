@@ -30,6 +30,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Collections
@@ -45,6 +46,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val isLoading by lazy { MutableLiveData<Boolean>() }
     val updateListAction by lazy { MutableLiveData<Int>() }
     val updateTestResultAction by lazy { MutableLiveData<String>() }
+    val universalUpdateStatus by lazy { MutableLiveData<String>() }
     private val tcpingTestScope by lazy { CoroutineScope(Dispatchers.IO) }
 
     /**
@@ -177,14 +179,38 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      * @return The number of updated configurations.
      */
     fun updateConfigViaSubAll(): Int {
-        // Use the new Universal Master Index update instead of the old logic
         viewModelScope.launch(Dispatchers.IO) {
-            SubscriptionUpdater.updateUniversalSubscription()
+            val count = AngConfigManager.updateConfigViaSubAll()
             withContext(Dispatchers.Main) {
-                reloadServerList()
+                if (count > 0) {
+                    reloadServerList()
+                    getApplication<AngApplication>().toastSuccess(R.string.toast_success)
+                } else {
+                    getApplication<AngApplication>().toastSuccess(R.string.toast_success)
+                }
             }
         }
-        return 0 // Since it's async now, we can't return the count immediately. The count was mostly for toast messages.
+        return 0
+    }
+
+    fun startUniversalUpdate() {
+        viewModelScope.launch(Dispatchers.IO) {
+            SubscriptionUpdater.updateUniversalSubscription { status ->
+                 universalUpdateStatus.postValue(status)
+            }
+            withContext(Dispatchers.Main) {
+                universalUpdateStatus.value = "" // Clear status when done
+                reloadServerList()
+                MmkvManager.encodeSettings(AppConfig.PREF_UNIVERSAL_INIT, true)
+            }
+        }
+    }
+
+    fun checkFirstRun() {
+        val isInit = MmkvManager.decodeSettingsBool(AppConfig.PREF_UNIVERSAL_INIT, false)
+        if (!isInit) {
+            startUniversalUpdate()
+        }
     }
 
     /**
