@@ -172,6 +172,7 @@ object AppConfig {
     const val TUIC = "tuic://"
     const val HYSTERIA2 = "hysteria2://"
     const val HY2 = "hy2://"
+    const val SSH = "ssh://"
 
     /** Give a good name to this, IDK*/
     const val VPN = "VPN"

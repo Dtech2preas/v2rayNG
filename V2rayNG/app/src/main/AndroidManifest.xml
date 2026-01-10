@@ -189,6 +189,16 @@
             android:exported="false"
             android:process=":RunSoLibV2RayDaemon" />
 
+        <service
+            android:name=".service.SshProxyService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse"
+            android:process=":RunSoLibV2RayDaemon">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="ssh" />
+        </service>
+
         <receiver
             android:name=".receiver.WidgetProvider"
             android:exported="true"

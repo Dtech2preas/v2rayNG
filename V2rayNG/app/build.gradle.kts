@@ -184,6 +184,9 @@ dependencies {
     // Multidex Support
     implementation(libs.multidex)
 
+    // SSH
+    implementation("com.jcraft:jsch:0.1.55")
+
     // Testing Libraries
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -1031,6 +1031,18 @@ object V2rayConfigManager {
             EConfigType.WIREGUARD -> WireguardFmt.toOutbound(profileItem)
             EConfigType.HYSTERIA2 -> null
             EConfigType.HTTP -> HttpFmt.toOutbound(profileItem)
+            EConfigType.SSH -> OutboundBean(
+                protocol = EConfigType.SOCKS.name.lowercase(),
+                settings = OutSettingsBean(
+                    servers = listOf(
+                        OutSettingsBean.ServersBean(
+                            address = AppConfig.LOOPBACK,
+                            port = 20808
+                        )
+                    )
+                ),
+                streamSettings = StreamSettingsBean()
+            )
             EConfigType.POLICYGROUP -> null
         }
     }
