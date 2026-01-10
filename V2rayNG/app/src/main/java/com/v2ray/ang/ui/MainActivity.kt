@@ -41,12 +41,6 @@ import com.v2ray.ang.handler.MmkvManager
 import com.v2ray.ang.handler.V2RayServiceManager
 import com.v2ray.ang.util.Utils
 import com.v2ray.ang.viewmodel.MainViewModel
-import com.v2ray.ang.service.SshProxyService
-import com.v2ray.ang.dto.ProfileItem
-import android.content.ServiceConnection
-import android.content.ComponentName
-import android.os.IBinder
-import android.content.Context
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -68,20 +62,6 @@ class MainActivity : BaseActivity() {
 
     // Traffic monitor job
     private var trafficMonitorJob: Job? = null
-
-    // SSH Mode
-    private var isSshMode = false
-    private var sshService: SshProxyService? = null
-    private val sshServiceConnection = object : ServiceConnection {
-        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-            val binder = service as SshProxyService.LocalBinder
-            sshService = binder.getService()
-        }
-
-        override fun onServiceDisconnected(name: ComponentName?) {
-            sshService = null
-        }
-    }
 
     // Pulse animation
     private val pulseAnimation by lazy {
@@ -128,97 +108,57 @@ class MainActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        try {
-            setContentView(binding.root)
+        setContentView(binding.root)
 
-            // Connect Button logic (Using new container)
-            binding.btnConnectContainer.setOnClickListener {
-                handleConnectClick()
-            }
-
-            // Import Button logic
-            binding.btnImportConfig.setOnClickListener {
-                showImportConfigDialog()
-            }
-
-            binding.layoutTest.setOnClickListener {
-                if (mainViewModel.isRunning.value == true) {
-                    setTestState(getString(R.string.connection_test_testing))
-                    mainViewModel.testCurrentServerRealPing()
-                }
-            }
-
-            // Settings icon logic
-            binding.ivSettings.setOnClickListener {
-                startActivity(Intent(this, SettingsActivity::class.java))
-            }
-
-            // Refresh (Universal Update) logic
-            binding.ivRefresh.setOnClickListener {
-                mainViewModel.startUniversalUpdate()
-            }
-
-            // Mode Switch Logic
-            binding.ivSwitchMode.setOnClickListener {
-                isSshMode = !isSshMode
-                updateUIMode()
-            }
-
-            binding.recyclerView.setHasFixedSize(true)
-            binding.recyclerView.layoutManager = GridLayoutManager(this, 1)
-            binding.recyclerView.adapter = adapter
-
-            // Lock Drawer
-            binding.drawerLayout.setDrawerLockMode(androidx.drawerlayout.widget.DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
-
-            setupViewModel()
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                    requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                }
-            }
-
-            // Check for first run universal update
-            mainViewModel.checkFirstRun()
-
-            // Bind SSH Service
-            val intent = Intent(this, SshProxyService::class.java)
-            bindService(intent, sshServiceConnection, Context.BIND_AUTO_CREATE)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            // If we crash here, the app is in a bad state.
-            // But catching it might prevent the "immediate crash" and allow user to see something if we had a proper error UI.
-            // For now, logging it is the best we can do without a dedicated ErrorActivity.
+        // Connect Button logic (Using new container)
+        binding.btnConnectContainer.setOnClickListener {
+            handleConnectClick()
         }
-    }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        unbindService(sshServiceConnection)
-    }
-
-    private fun updateUIMode() {
-        if (isSshMode) {
-             binding.recyclerView.visibility = View.GONE
-             binding.layoutSshUdp.visibility = View.VISIBLE
-             binding.ivSwitchMode.setImageResource(android.R.drawable.ic_menu_revert)
-             binding.tvTestState.text = "SSH UDP Mode"
-        } else {
-             binding.recyclerView.visibility = View.VISIBLE
-             binding.layoutSshUdp.visibility = View.GONE
-             binding.ivSwitchMode.setImageResource(android.R.drawable.ic_input_add)
-             binding.tvTestState.text = "Not Connected"
+        // Import Button logic
+        binding.btnImportConfig.setOnClickListener {
+             showImportConfigDialog()
         }
+
+        binding.layoutTest.setOnClickListener {
+            if (mainViewModel.isRunning.value == true) {
+                setTestState(getString(R.string.connection_test_testing))
+                mainViewModel.testCurrentServerRealPing()
+            }
+        }
+
+        // Settings icon logic
+        binding.ivSettings.setOnClickListener {
+             startActivity(Intent(this, SettingsActivity::class.java))
+        }
+
+        // Refresh (Universal Update) logic
+        binding.ivRefresh.setOnClickListener {
+            mainViewModel.startUniversalUpdate()
+        }
+
+        binding.recyclerView.setHasFixedSize(true)
+        binding.recyclerView.layoutManager = GridLayoutManager(this, 1)
+        binding.recyclerView.adapter = adapter
+
+        // Lock Drawer
+        binding.drawerLayout.setDrawerLockMode(androidx.drawerlayout.widget.DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
+
+        setupViewModel()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+
+        // Check for first run universal update
+        mainViewModel.checkFirstRun()
     }
 
     private fun handleConnectClick() {
         if (mainViewModel.isRunning.value == true) {
             V2RayServiceManager.stopVService(this)
-            sshService?.stopSsh()
-        } else if (isSshMode) {
-            // SSH Connect Logic
-            startSshVpn()
         } else if ((MmkvManager.decodeSettingsString(AppConfig.PREF_MODE) ?: VPN) == VPN) {
             val intent = VpnService.prepare(this)
             if (intent == null) {
@@ -413,66 +353,6 @@ class MainActivity : BaseActivity() {
 
         com.v2ray.ang.handler.V2rayConfigManager.overrideSni = null
         V2RayServiceManager.startVService(this)
-    }
-
-    private fun startSshVpn() {
-        // Collect credentials
-        val host = binding.etSshServer.text.toString()
-        val port = binding.etSshPort.text.toString()
-        val user = binding.etSshUser.text.toString()
-        val password = binding.etSshPassword.text.toString()
-
-        if (host.isEmpty()) {
-            toast("Host required")
-            return
-        }
-
-        // Save to temporary profile/MMKV or just use temporary object
-        val profile = ProfileItem.create(EConfigType.SSH).apply {
-            server = host
-            serverPort = if (port.isEmpty()) "22" else port
-            username = user
-            this.password = password
-            remarks = "SSH Tunnel"
-        }
-
-        // Start SSH Service (Foreground)
-        val sshIntent = Intent(this, SshProxyService::class.java).apply {
-            putExtra(SshProxyService.EXTRA_HOST, host)
-            putExtra(SshProxyService.EXTRA_PORT, profile.serverPort)
-            putExtra(SshProxyService.EXTRA_USER, user)
-            putExtra(SshProxyService.EXTRA_PASS, password)
-
-            val udpgwPortStr = binding.etSshUdpgwPort.text.toString()
-            val udpgwPort = udpgwPortStr.toIntOrNull() ?: 7300
-            putExtra(SshProxyService.EXTRA_UDPGW_PORT, udpgwPort)
-            putExtra(SshProxyService.EXTRA_LOCAL_SOCKS_PORT, 20808) // Use non-conflicting port
-        }
-
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            startForegroundService(sshIntent)
-        } else {
-            startService(sshIntent)
-        }
-
-        // Generate V2Ray Config that points to SOCKS 127.0.0.1:20808
-        // We need to inject a special config
-
-        // Hack: Create a temporary profile in MMKV, select it, then start VService
-        // But better is to just let V2rayConfigManager handle it if we have a way to pass "SSH Mode"
-
-        // For now, let's just insert a fake profile into the repository/cache and select it?
-        // Or modify V2rayConfigManager to generate SOCKS outbound if type is SSH.
-
-        // Since we added SSH type to EConfigType, we can just save this profile to MMKV
-        val guid = MmkvManager.encodeServerConfig("", profile)
-        MmkvManager.setSelectServer(guid)
-
-        // Start V2Ray (which will now see the SSH profile)
-        // We need to ensure V2rayConfigManager handles SSH type by generating SOCKS outbound
-        V2RayServiceManager.startVService(this)
-
-        mainViewModel.isLoading.value = true
     }
 
     // ... (Other methods remain similar)
