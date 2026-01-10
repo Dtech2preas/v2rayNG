@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">v2rayNG</string>
-    <string name="app_widget_name">Switch</string>
-    <string name="app_tile_name">Switch</string>
+    <string name="app_name">D-TECH VPN</string>
+    <string name="app_tile_name">D-TECH</string>
     <string name="app_tile_first_use">First use of this feature, please use the app to add server</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -12,7 +11,7 @@
     <string name="pull_down_to_refresh">Please pull down to refresh!</string>
 
     <!-- Notifications -->
-    <string name="notification_action_stop_v2ray">Stop</string>
+    <string name="notification_action_stop_v2ray">Stop D-TECH Service</string>
     <string name="toast_permission_denied">Unable to obtain the permission</string>
     <string name="toast_permission_denied_notification">Unable to obtain the notification permission</string>
     <string name="notification_action_more">Click for more</string>
