@@ -40,6 +40,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     var keywordFilter = ""
     val serversCache = mutableListOf<ServersCache>()
     val isRunning by lazy { MutableLiveData<Boolean>() }
+    val isLoading by lazy { MutableLiveData<Boolean>() }
     val updateListAction by lazy { MutableLiveData<Int>() }
     val updateTestResultAction by lazy { MutableLiveData<String>() }
     private val tcpingTestScope by lazy { CoroutineScope(Dispatchers.IO) }
@@ -50,6 +51,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      */
     fun startListenBroadcast() {
         isRunning.value = false
+        isLoading.value = false
         val mFilter = IntentFilter(AppConfig.BROADCAST_ACTION_ACTIVITY)
         ContextCompat.registerReceiver(getApplication(), mMsgReceiver, mFilter, Utils.receiverFlags())
         MessageUtil.sendMsg2Service(getApplication(), AppConfig.MSG_REGISTER_CLIENT, "")
@@ -412,20 +414,24 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             when (intent?.getIntExtra("key", 0)) {
                 AppConfig.MSG_STATE_RUNNING -> {
                     isRunning.value = true
+                    isLoading.value = false
                 }
 
                 AppConfig.MSG_STATE_NOT_RUNNING -> {
                     isRunning.value = false
+                    isLoading.value = false
                 }
 
                 AppConfig.MSG_STATE_START_SUCCESS -> {
                     getApplication<AngApplication>().toastSuccess(R.string.toast_services_success)
                     isRunning.value = true
+                    isLoading.value = false
                 }
 
                 AppConfig.MSG_STATE_START_FAILURE -> {
                     getApplication<AngApplication>().toastError(R.string.toast_services_failure)
                     isRunning.value = false
+                    isLoading.value = false
                 }
 
                 AppConfig.MSG_STATE_STOP_SUCCESS -> {
