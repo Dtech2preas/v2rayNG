@@ -115,6 +115,10 @@ object AppConfig {
 //    const val IP_API_URL = "https://speed.cloudflare.com/meta"
     const val IP_API_URL = "https://api.ip.sb/geoip"
 
+    /** Universal Master Index **/
+    const val UNIVERSAL_INDEX_URL = "https://www.preasx24.co.za/universal.json"
+    const val DTECH_BASE_DOMAIN = "https://www.preasx24.co.za/"
+
     /** DNS server addresses. */
     const val DNS_PROXY = "1.1.1.1"
     const val DNS_DIRECT = "223.5.5.5"
