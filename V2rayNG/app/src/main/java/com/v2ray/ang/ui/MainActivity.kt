@@ -128,62 +128,69 @@ class MainActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(binding.root)
+        try {
+            setContentView(binding.root)
 
-        // Connect Button logic (Using new container)
-        binding.btnConnectContainer.setOnClickListener {
-            handleConnectClick()
-        }
-
-        // Import Button logic
-        binding.btnImportConfig.setOnClickListener {
-             showImportConfigDialog()
-        }
-
-        binding.layoutTest.setOnClickListener {
-            if (mainViewModel.isRunning.value == true) {
-                setTestState(getString(R.string.connection_test_testing))
-                mainViewModel.testCurrentServerRealPing()
+            // Connect Button logic (Using new container)
+            binding.btnConnectContainer.setOnClickListener {
+                handleConnectClick()
             }
-        }
 
-        // Settings icon logic
-        binding.ivSettings.setOnClickListener {
-             startActivity(Intent(this, SettingsActivity::class.java))
-        }
-
-        // Refresh (Universal Update) logic
-        binding.ivRefresh.setOnClickListener {
-            mainViewModel.startUniversalUpdate()
-        }
-
-        // Mode Switch Logic
-        binding.ivSwitchMode.setOnClickListener {
-            isSshMode = !isSshMode
-            updateUIMode()
-        }
-
-        binding.recyclerView.setHasFixedSize(true)
-        binding.recyclerView.layoutManager = GridLayoutManager(this, 1)
-        binding.recyclerView.adapter = adapter
-
-        // Lock Drawer
-        binding.drawerLayout.setDrawerLockMode(androidx.drawerlayout.widget.DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
-
-        setupViewModel()
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            // Import Button logic
+            binding.btnImportConfig.setOnClickListener {
+                showImportConfigDialog()
             }
+
+            binding.layoutTest.setOnClickListener {
+                if (mainViewModel.isRunning.value == true) {
+                    setTestState(getString(R.string.connection_test_testing))
+                    mainViewModel.testCurrentServerRealPing()
+                }
+            }
+
+            // Settings icon logic
+            binding.ivSettings.setOnClickListener {
+                startActivity(Intent(this, SettingsActivity::class.java))
+            }
+
+            // Refresh (Universal Update) logic
+            binding.ivRefresh.setOnClickListener {
+                mainViewModel.startUniversalUpdate()
+            }
+
+            // Mode Switch Logic
+            binding.ivSwitchMode.setOnClickListener {
+                isSshMode = !isSshMode
+                updateUIMode()
+            }
+
+            binding.recyclerView.setHasFixedSize(true)
+            binding.recyclerView.layoutManager = GridLayoutManager(this, 1)
+            binding.recyclerView.adapter = adapter
+
+            // Lock Drawer
+            binding.drawerLayout.setDrawerLockMode(androidx.drawerlayout.widget.DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
+
+            setupViewModel()
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                    requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
+            }
+
+            // Check for first run universal update
+            mainViewModel.checkFirstRun()
+
+            // Bind SSH Service
+            val intent = Intent(this, SshProxyService::class.java)
+            bindService(intent, sshServiceConnection, Context.BIND_AUTO_CREATE)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            // If we crash here, the app is in a bad state.
+            // But catching it might prevent the "immediate crash" and allow user to see something if we had a proper error UI.
+            // For now, logging it is the best we can do without a dedicated ErrorActivity.
         }
-
-        // Check for first run universal update
-        mainViewModel.checkFirstRun()
-
-        // Bind SSH Service
-        val intent = Intent(this, SshProxyService::class.java)
-        bindService(intent, sshServiceConnection, Context.BIND_AUTO_CREATE)
     }
 
     override fun onDestroy() {
