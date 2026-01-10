@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.os.SystemClock
 import android.util.Log
 import androidx.core.content.ContextCompat
 import com.v2ray.ang.AppConfig
@@ -31,6 +32,7 @@ object V2RayServiceManager {
     private val coreController: CoreController = Libv2ray.newCoreController(CoreCallback())
     private val mMsgReceive = ReceiveMessageHandler()
     private var currentConfig: ProfileItem? = null
+    var startTime: Long = 0
 
     var serviceControl: SoftReference<ServiceControl>? = null
         set(value) {
@@ -165,6 +167,7 @@ object V2RayServiceManager {
             MessageUtil.sendMsg2UI(service, AppConfig.MSG_STATE_START_SUCCESS, "")
             NotificationManager.showNotification(currentConfig)
             NotificationManager.startSpeedNotification(currentConfig)
+            startTime = SystemClock.elapsedRealtime()
 
             PluginServiceManager.runPlugin(service, config, result.socksPort)
         } catch (e: Exception) {
@@ -194,6 +197,7 @@ object V2RayServiceManager {
 
         MessageUtil.sendMsg2UI(service, AppConfig.MSG_STATE_STOP_SUCCESS, "")
         NotificationManager.cancelNotification()
+        startTime = 0
 
         try {
             service.unregisterReceiver(mMsgReceive)

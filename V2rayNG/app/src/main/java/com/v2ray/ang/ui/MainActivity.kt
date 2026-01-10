@@ -9,6 +9,7 @@ import android.net.Uri
 import android.net.VpnService
 import android.os.Build
 import android.os.Bundle
+import android.os.SystemClock
 import android.util.Log
 import android.view.KeyEvent
 import android.view.View
@@ -212,14 +213,27 @@ class MainActivity : BaseActivity() {
                 binding.viewPulse.visibility = View.VISIBLE
                 binding.viewPulse.startAnimation(pulseAnimation)
 
+                // Timer Logic
+                if (V2RayServiceManager.startTime > 0) {
+                    binding.chronometer.base = V2RayServiceManager.startTime
+                } else {
+                    binding.chronometer.base = SystemClock.elapsedRealtime()
+                }
+                binding.chronometer.start()
+
                 setTestState("Connected")
                 binding.layoutTest.isFocusable = true
                 startTrafficMonitor()
+                mainViewModel.testCurrentServerRealPing()
             } else {
                 // Disconnected State
                 binding.ivConnectIcon.setImageResource(android.R.drawable.ic_lock_power_off)
                 binding.viewPulse.clearAnimation()
                 binding.viewPulse.visibility = View.INVISIBLE
+
+                // Timer Logic
+                binding.chronometer.stop()
+                binding.chronometer.base = SystemClock.elapsedRealtime()
 
                 if (mainViewModel.isLoading.value == true) {
                      setTestState("Connecting...")
