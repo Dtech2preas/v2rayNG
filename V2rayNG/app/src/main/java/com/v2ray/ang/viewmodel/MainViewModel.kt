@@ -23,6 +23,7 @@ import com.v2ray.ang.handler.AngConfigManager
 import com.v2ray.ang.handler.MmkvManager
 import com.v2ray.ang.handler.SettingsManager
 import com.v2ray.ang.handler.SpeedtestManager
+import com.v2ray.ang.handler.SubscriptionUpdater
 import com.v2ray.ang.util.MessageUtil
 import com.v2ray.ang.util.Utils
 import kotlinx.coroutines.CoroutineScope
@@ -30,6 +31,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.Collections
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
@@ -175,12 +177,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      * @return The number of updated configurations.
      */
     fun updateConfigViaSubAll(): Int {
-        if (subscriptionId.isEmpty()) {
-            return AngConfigManager.updateConfigViaSubAll()
-        } else {
-            val subItem = MmkvManager.decodeSubscription(subscriptionId) ?: return 0
-            return AngConfigManager.updateConfigViaSub(Pair(subscriptionId, subItem))
+        // Use the new Universal Master Index update instead of the old logic
+        viewModelScope.launch(Dispatchers.IO) {
+            SubscriptionUpdater.updateUniversalSubscription()
+            withContext(Dispatchers.Main) {
+                reloadServerList()
+            }
         }
+        return 0 // Since it's async now, we can't return the count immediately. The count was mostly for toast messages.
     }
 
     /**
