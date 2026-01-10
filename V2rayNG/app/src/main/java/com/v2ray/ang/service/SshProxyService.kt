@@ -159,7 +159,7 @@ class SshProxyService : Service() {
             socksServer = ServerSocket(localSocksPort, 50, InetAddress.getByName("127.0.0.1"))
             Log.d(TAG, "SOCKS5 Server listening on $localSocksPort")
 
-            while (isRunning && isActive) {
+            while (isRunning && serviceScope.isActive) {
                 try {
                     val clientSocket = socksServer?.accept() ?: break
                     serviceScope.launch {
