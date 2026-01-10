@@ -2,6 +2,7 @@
 <resources>
     <string name="app_name">D-TECH VPN</string>
     <string name="app_tile_name">D-TECH</string>
+    <string name="app_widget_name">D-TECH Switch</string>
     <string name="app_tile_first_use">First use of this feature, please use the app to add server</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
