@@ -177,10 +177,11 @@ object V2rayConfigManager {
         if (MmkvManager.decodeSettingsBool(AppConfig.PREF_LOCAL_DNS_ENABLED) == true) {
             getCustomLocalDns(v2rayConfig)
         }
-        if (MmkvManager.decodeSettingsBool(AppConfig.PREF_SPEED_ENABLED) != true) {
-            v2rayConfig.stats = null
-            v2rayConfig.policy = null
-        }
+        // Force enable stats for dashboard
+        // if (MmkvManager.decodeSettingsBool(AppConfig.PREF_SPEED_ENABLED) != true) {
+        //     v2rayConfig.stats = null
+        //     v2rayConfig.policy = null
+        // }
 
         //Resolve and add to DNS Hosts
         if (MmkvManager.decodeSettingsString(AppConfig.PREF_OUTBOUND_DOMAIN_RESOLVE_METHOD, "1") == "1") {
@@ -237,10 +238,11 @@ object V2rayConfigManager {
         if (MmkvManager.decodeSettingsBool(AppConfig.PREF_LOCAL_DNS_ENABLED)) {
             getCustomLocalDns(v2rayConfig)
         }
-        if (!MmkvManager.decodeSettingsBool(AppConfig.PREF_SPEED_ENABLED)) {
-            v2rayConfig.stats = null
-            v2rayConfig.policy = null
-        }
+        // Force enable stats for dashboard
+        // if (!MmkvManager.decodeSettingsBool(AppConfig.PREF_SPEED_ENABLED)) {
+        //     v2rayConfig.stats = null
+        //     v2rayConfig.policy = null
+        // }
 
         //Resolve and add to DNS Hosts
         if (MmkvManager.decodeSettingsString(AppConfig.PREF_OUTBOUND_DOMAIN_RESOLVE_METHOD, "1") == "1") {

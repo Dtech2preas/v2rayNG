@@ -160,6 +160,7 @@ class MainActivity : BaseActivity() {
         } else {
             startV2Ray()
         }
+        mainViewModel.isLoading.value = true
     }
 
     private fun showImportConfigDialog() {
@@ -220,13 +221,28 @@ class MainActivity : BaseActivity() {
                 binding.viewPulse.clearAnimation()
                 binding.viewPulse.visibility = View.INVISIBLE
 
-                setTestState("Not Connected")
+                if (mainViewModel.isLoading.value == true) {
+                     setTestState("Connecting...")
+                } else {
+                     setTestState("Not Connected")
+                }
                 binding.layoutTest.isFocusable = false
                 stopTrafficMonitor()
                 // Reset speeds
                 binding.tvUploadSpeed.text = "0 KB/s"
                 binding.tvDownloadSpeed.text = "0 KB/s"
             }
+        }
+        mainViewModel.isLoading.observe(this) { isLoading ->
+             if (isLoading) {
+                 setTestState("Connecting...")
+                 binding.viewPulse.visibility = View.VISIBLE
+                 binding.viewPulse.startAnimation(pulseAnimation)
+             } else if (mainViewModel.isRunning.value == false) {
+                 setTestState("Not Connected")
+                 binding.viewPulse.clearAnimation()
+                 binding.viewPulse.visibility = View.INVISIBLE
+             }
         }
         mainViewModel.startListenBroadcast()
         mainViewModel.initAssets(assets)

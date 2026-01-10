@@ -167,6 +167,7 @@ class V2RayVpnService : VpnService(), ServiceControl {
             return true
         } catch (e: Exception) {
             Log.e(AppConfig.TAG, "Failed to establish VPN interface", e)
+            com.v2ray.ang.util.MessageUtil.sendMsg2UI(this, AppConfig.MSG_STATE_START_FAILURE, "")
             stopV2Ray()
         }
         return false
