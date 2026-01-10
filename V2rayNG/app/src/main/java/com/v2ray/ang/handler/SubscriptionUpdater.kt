@@ -70,7 +70,7 @@ object SubscriptionUpdater {
 
             // Step A: Fetch universal.json
             val universalContent = try {
-                HttpUtil.getUrlContentWithUserAgent(AppConfig.UNIVERSAL_INDEX_URL)
+                HttpUtil.getUrlContentWithUserAgent(AppConfig.UNIVERSAL_INDEX_URL, null)
             } catch (e: Exception) {
                 Log.e(AppConfig.TAG, "Failed to fetch universal index", e)
                 return
@@ -145,8 +145,8 @@ object SubscriptionUpdater {
                     subItemToUse = subItem
                 } else {
                     // Update remarks if changed (optional, but good for consistency)
-                    if (subItemToUse?.remarks != configName) {
-                        subItemToUse?.remarks = configName
+                    if (subItemToUse != null && subItemToUse.remarks != configName) {
+                        subItemToUse.remarks = configName
                         MmkvManager.encodeSubscription(subIdToUse, subItemToUse)
                     }
                 }
