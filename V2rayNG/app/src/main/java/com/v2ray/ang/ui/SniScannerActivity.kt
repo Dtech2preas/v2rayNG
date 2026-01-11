@@ -9,16 +9,13 @@ import android.os.Build
 import android.os.Bundle
 import android.text.TextUtils
 import android.util.Log
-import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.lifecycleScope
 import com.v2ray.ang.AppConfig
 import com.v2ray.ang.R
-import com.v2ray.ang.dto.EConfigType
 import com.v2ray.ang.dto.ProfileItem
 import com.v2ray.ang.extension.toast
 import com.v2ray.ang.fmt.VlessFmt
@@ -35,6 +32,7 @@ class SniScannerActivity : BaseActivity() {
     private lateinit var btnStart: Button
     private lateinit var btnStop: Button
     private lateinit var tvResults: TextView
+    private lateinit var tvStatus: TextView
 
     private var isScanning = false
     private var scanJob: Job? = null
@@ -43,19 +41,27 @@ class SniScannerActivity : BaseActivity() {
     // To verify "Original" logic, we capture the original selected server to restore it later
     private var originalSelectedServer: String? = null
 
+    // Defer for service connection
+    private var connectedDeferred: CompletableDeferred<Boolean>? = null
+    // Defer for ping result
+    private var pingResultDeferred: CompletableDeferred<Long>? = null
+
     // Broadcast Receiver
     private val mMsgReceiver = object : BroadcastReceiver() {
         override fun onReceive(ctx: Context?, intent: Intent?) {
             when (intent?.getIntExtra("key", 0)) {
                 AppConfig.MSG_STATE_RUNNING -> {
-                    // Service started, trigger ping
-                    ctx?.let { MessageUtil.sendMsg2Service(it, AppConfig.MSG_MEASURE_DELAY, "") }
+                    // Service started
+                    // Don't auto-ping, just notify connected
+                    connectedDeferred?.complete(true)
+                }
+                AppConfig.MSG_STATE_START_FAILURE, AppConfig.MSG_STATE_STOP -> {
+                     connectedDeferred?.complete(false)
                 }
                 AppConfig.MSG_MEASURE_DELAY_SUCCESS -> {
                     val content = intent.getSerializableExtra("content") as? String
                     onDelaySuccess(content)
                 }
-                // We handle failure via timeout mostly, but if we get explicit stop/fail
             }
         }
     }
@@ -75,6 +81,7 @@ class SniScannerActivity : BaseActivity() {
         btnStart = findViewById(R.id.btn_start)
         btnStop = findViewById(R.id.btn_stop)
         tvResults = findViewById(R.id.tv_results)
+        tvStatus = findViewById(R.id.tv_status)
 
         btnStart.setOnClickListener {
             prepareStartScan()
@@ -110,7 +117,6 @@ class SniScannerActivity : BaseActivity() {
         }
 
         // Parse Base Config
-        // We only support VLESS as per request
         val baseProfile: ProfileItem? = if (configStr.startsWith(AppConfig.VLESS)) {
              VlessFmt.parse(configStr)
         } else {
@@ -134,6 +140,7 @@ class SniScannerActivity : BaseActivity() {
         isScanning = true
         updateUIState(true)
         tvResults.text = "" // Clear previous results
+        tvStatus.text = "Status: Preparing..."
 
         // Register Receiver
         val filter = IntentFilter(AppConfig.BROADCAST_ACTION_ACTIVITY)
@@ -146,8 +153,6 @@ class SniScannerActivity : BaseActivity() {
         scanJob = lifecycleScope.launch(Dispatchers.Main) {
             appendLog("Starting Scan with ${hosts.size} hosts...")
 
-            // Normalize base profile properties
-            // If SNI/Host are empty in base profile, they should take the value of the original address
             val originalAddress = baseProfile.server ?: ""
             if (baseProfile.sni.isNullOrEmpty()) baseProfile.sni = originalAddress
             if (baseProfile.host.isNullOrEmpty()) baseProfile.host = originalAddress
@@ -156,46 +161,28 @@ class SniScannerActivity : BaseActivity() {
                 if (!isScanning) break
 
                 appendLog("Testing: $host")
+                updateStatus(host, "Preparing...")
+                delay(1000) // Visual Delay
 
                 // Prepare Profile
-                val testProfile = baseProfile.copy() // assuming data class copy or we construct new
-                // Deep copy manually if needed, but ProfileItem is likely a data class or simple object
-                // Let's create a fresh one to be safe since we are modifying it
-                // Actually ProfileItem is a data class in the codebase usually?
-                // Let's use the one we parsed as a template.
-                // We must ensure we don't modify 'baseProfile' itself for next iterations.
-                // Since I can't rely on 'copy()', I will parse it again or just manually set fields.
-                // Re-parsing is safer but slower. Let's use 'copy()' if available (it's a Kotlin data class).
-                // Wait, I need to check if ProfileItem is a data class.
-                // Memory says "dto/ProfileItem", usually data class. Assuming yes.
-
-                // Set Address to Zero-Rate Host
-                // But wait! ProfileItem is mutable?
-                // Let's manually set properties on a new object or modify a clone.
-                // Since I don't have source code of ProfileItem right here (I didn't read it), I'll assume I can clone it
-                // by serializing/deserializing or if it is a data class.
-                // Let's check 'AngConfigManager.kt' imports 'com.v2ray.ang.dto.ProfileItem'.
-                // I will read it to be sure.
-
-                // For now, I will assume I can modify 'testProfile'.
-                // I need to clone 'baseProfile'.
-                // Since I can't easily deep clone without library, I'll just re-parse string.
-                val currentProfile = VlessFmt.parse(configStr)!!
+                val currentProfile = VlessFmt.parse(configStr)
+                if (currentProfile == null) {
+                    updateStatus(host, "Error: Invalid Profile")
+                    continue
+                }
                 if (currentProfile.sni.isNullOrEmpty()) currentProfile.sni = originalAddress
                 if (currentProfile.host.isNullOrEmpty()) currentProfile.host = originalAddress
 
                 currentProfile.server = host
                 currentProfile.remarks = "SCANNING_TEMP"
 
-                // Save to MMKV
                 MmkvManager.encodeServerConfig(tempGuid, currentProfile)
                 MmkvManager.setSelectServer(tempGuid)
 
-                // Start Service
-                // We need to stop first if running
+                // Ensure stopped
                 if (V2RayServiceManager.isRunning()) {
+                     updateStatus(host, "Stopping previous...")
                      V2RayServiceManager.stopVService(this@SniScannerActivity)
-                     // Wait for stop
                      withContext(Dispatchers.IO) {
                          var retries = 0
                          while (V2RayServiceManager.isRunning() && retries < 20) {
@@ -205,37 +192,54 @@ class SniScannerActivity : BaseActivity() {
                      }
                 }
 
+                // Start
+                updateStatus(host, "Connecting...")
+                connectedDeferred = CompletableDeferred()
                 V2RayServiceManager.startVService(this@SniScannerActivity)
 
-                // Wait for connection
-                // We use a Deferred that is completed by the BroadcastReceiver
-                try {
-                    val result = withTimeoutOrNull(10000) { // 10s timeout for connect + ping
-                        waitForPingResult()
-                    }
-
-                    if (result != null && result > 0) {
-                        appendLog("SUCCESS: $host ($result ms)")
-                        tvResults.append("$host\n")
-                    } else {
-                        // Fail or Timeout
-                    }
-                } catch (e: Exception) {
-                    // Log.e("Scanner", "Error", e)
+                // Wait for Connection
+                val isConnected = withTimeoutOrNull(10000) {
+                    connectedDeferred?.await()
                 }
 
-                // Stop service before next
+                if (isConnected == true) {
+                    updateStatus(host, "Connected. Stabilizing...")
+                    delay(2000) // Wait for key icon / stabilization
+
+                    updateStatus(host, "Pinging...")
+                    pingResultDeferred = CompletableDeferred()
+                    MessageUtil.sendMsg2Service(this@SniScannerActivity, AppConfig.MSG_MEASURE_DELAY, "")
+
+                    val ping = withTimeoutOrNull(5000) {
+                        pingResultDeferred?.await()
+                    }
+
+                    if (ping != null && ping > 0) {
+                        updateStatus(host, "Success: ${ping}ms")
+                        tvResults.append("$host (${ping}ms)\n")
+                    } else {
+                         updateStatus(host, "Ping Failed/Timeout")
+                    }
+                } else {
+                    updateStatus(host, "Connection Failed")
+                }
+
+                // Wait a bit to let user see result
+                delay(1000)
+
+                // Stop
+                updateStatus(host, "Stopping...")
                 V2RayServiceManager.stopVService(this@SniScannerActivity)
-                delay(500) // Cooldown
+                delay(1000) // Cooldown
             }
 
             isScanning = false
             updateUIState(false)
+            tvStatus.text = "Status: Scan Finished."
             appendLog("Scan Finished.")
 
             // Restore original server
             originalSelectedServer?.let { MmkvManager.setSelectServer(it) }
-            // Cleanup temp
             MmkvManager.removeServer(tempGuid)
             try {
                  unregisterReceiver(mMsgReceiver)
@@ -243,18 +247,13 @@ class SniScannerActivity : BaseActivity() {
         }
     }
 
-    private var pingResultDeferred: CompletableDeferred<Long>? = null
-
-    private suspend fun waitForPingResult(): Long {
-        pingResultDeferred = CompletableDeferred()
-        return pingResultDeferred!!.await()
+    private fun updateStatus(host: String, status: String) {
+        tvStatus.text = "Testing: $host\nStatus: $status"
     }
 
     // Called from Receiver
     private fun onDelaySuccess(content: String?) {
         if (pingResultDeferred?.isActive == true) {
-            // Content format: "123 ms" or "Error: ..."
-            // We need to parse.
             if (content != null && content.contains("ms")) {
                  try {
                      val ms = content.split(" ")[0].toLong()
@@ -272,6 +271,7 @@ class SniScannerActivity : BaseActivity() {
         isScanning = false
         scanJob?.cancel()
         updateUIState(false)
+        tvStatus.text = "Status: Stopped by user"
         try {
             unregisterReceiver(mMsgReceiver)
         } catch (e: IllegalArgumentException) {
@@ -290,11 +290,6 @@ class SniScannerActivity : BaseActivity() {
     }
 
     private fun appendLog(msg: String) {
-        // Optional: show logs in a separate view or just debug
-        // For now, we only show successful hosts in tvResults as per request
-        // But logging status helps user know it's working
-        // Maybe we can update the "Working Hosts" label or show a toast?
-        // Let's just log to Logcat and maybe a small status text if we had one.
         Log.d("SniScanner", msg)
     }
 }
