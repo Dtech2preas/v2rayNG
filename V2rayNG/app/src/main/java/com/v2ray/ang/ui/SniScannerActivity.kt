@@ -49,7 +49,7 @@ class SniScannerActivity : BaseActivity() {
             when (intent?.getIntExtra("key", 0)) {
                 AppConfig.MSG_STATE_RUNNING -> {
                     // Service started, trigger ping
-                    V2RayServiceManager.measureV2rayDelay()
+                    ctx?.let { MessageUtil.sendMsg2Service(it, AppConfig.MSG_MEASURE_DELAY, "") }
                 }
                 AppConfig.MSG_MEASURE_DELAY_SUCCESS -> {
                     val content = intent.getSerializableExtra("content") as? String
@@ -234,9 +234,7 @@ class SniScannerActivity : BaseActivity() {
             appendLog("Scan Finished.")
 
             // Restore original server
-            if (originalSelectedServer != null) {
-                MmkvManager.setSelectServer(originalSelectedServer)
-            }
+            originalSelectedServer?.let { MmkvManager.setSelectServer(it) }
             // Cleanup temp
             MmkvManager.removeServer(tempGuid)
             try {
@@ -281,9 +279,7 @@ class SniScannerActivity : BaseActivity() {
         }
 
         V2RayServiceManager.stopVService(this)
-        if (originalSelectedServer != null) {
-            MmkvManager.setSelectServer(originalSelectedServer)
-        }
+        originalSelectedServer?.let { MmkvManager.setSelectServer(it) }
     }
 
     private fun updateUIState(scanning: Boolean) {
