@@ -29,6 +29,7 @@ object MmkvManager {
     private const val KEY_ANG_CONFIGS = "ANG_CONFIGS"
     private const val KEY_SUB_IDS = "SUB_IDS"
     private const val KEY_WEBDAV_CONFIG = "WEBDAV_CONFIG"
+    private const val KEY_TIME_BALANCE = "TIME_BALANCE"
 
     //private val profileStorage by lazy { MMKV.mmkvWithID(ID_PROFILE_CONFIG, MMKV.MULTI_PROCESS_MODE) }
     private val mainStorage by lazy { MMKV.mmkvWithID(ID_MAIN, MMKV.MULTI_PROCESS_MODE) }
@@ -607,6 +608,26 @@ object MmkvManager {
     fun decodeWebDavConfig(): WebDavConfig? {
         val json = settingsStorage.decodeString(KEY_WEBDAV_CONFIG) ?: return null
         return JsonUtil.fromJson(json, WebDavConfig::class.java)
+    }
+
+    //endregion
+
+    //region Time Balance
+
+    /**
+     * Gets the current time balance in milliseconds.
+     * @return Time balance.
+     */
+    fun getTimeBalance(): Long {
+        return mainStorage.decodeLong(KEY_TIME_BALANCE, 0L)
+    }
+
+    /**
+     * Sets the time balance in milliseconds.
+     * @param balance Time balance.
+     */
+    fun setTimeBalance(balance: Long) {
+        mainStorage.encode(KEY_TIME_BALANCE, balance)
     }
 
     //endregion

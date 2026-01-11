@@ -47,7 +47,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val updateListAction by lazy { MutableLiveData<Int>() }
     val updateTestResultAction by lazy { MutableLiveData<String>() }
     val universalUpdateStatus by lazy { MutableLiveData<String>() }
+    val remainingTime by lazy { MutableLiveData<String>() }
     private val tcpingTestScope by lazy { CoroutineScope(Dispatchers.IO) }
+    private var timePollJob: Job? = null
 
     /**
      * Refer to the official documentation for [registerReceiver](https://developer.android.com/reference/androidx/core/content/ContextCompat#registerReceiver(android.content.Context,android.content.BroadcastReceiver,android.content.IntentFilter,int):
@@ -67,9 +69,26 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     override fun onCleared() {
         getApplication<AngApplication>().unregisterReceiver(mMsgReceiver)
         tcpingTestScope.coroutineContext[Job]?.cancelChildren()
+        timePollJob?.cancel()
         SpeedtestManager.closeAllTcpSockets()
         Log.i(AppConfig.TAG, "Main ViewModel is cleared")
         super.onCleared()
+    }
+
+    fun startTimePolling() {
+        timePollJob?.cancel()
+        timePollJob = viewModelScope.launch(Dispatchers.IO) {
+            while (true) {
+                val balance = MmkvManager.getTimeBalance()
+                val seconds = balance / 1000
+                val h = seconds / 3600
+                val m = (seconds % 3600) / 60
+                val s = seconds % 60
+                val timeStr = String.format("%02d:%02d:%02d", h, m, s)
+                remainingTime.postValue("Time Left: $timeStr")
+                delay(1000)
+            }
+        }
     }
 
     /**

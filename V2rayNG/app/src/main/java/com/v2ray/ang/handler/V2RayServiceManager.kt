@@ -21,6 +21,9 @@ import com.v2ray.ang.util.Utils
 import go.Seq
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import libv2ray.CoreCallbackHandler
 import libv2ray.CoreController
@@ -33,6 +36,7 @@ object V2RayServiceManager {
     private val mMsgReceive = ReceiveMessageHandler()
     private var currentConfig: ProfileItem? = null
     var startTime: Long = 0
+    private var timeMonitorJob: Job? = null
 
     var serviceControl: SoftReference<ServiceControl>? = null
         set(value) {
@@ -169,12 +173,44 @@ object V2RayServiceManager {
             NotificationManager.startSpeedNotification(currentConfig)
             startTime = SystemClock.elapsedRealtime()
 
+            // Initialize time balance if needed
+            var balance = MmkvManager.getTimeBalance()
+            if (balance <= 0) {
+                balance = 120000 // 2 minutes
+                MmkvManager.setTimeBalance(balance)
+                service.toast("Cycle started: 2 mins free")
+            }
+
+            // Start time monitor
+            startTimeMonitor(service)
+
             PluginServiceManager.runPlugin(service, config, result.socksPort)
         } catch (e: Exception) {
             Log.e(AppConfig.TAG, "Failed to startup service", e)
             return false
         }
         return true
+    }
+
+    private fun startTimeMonitor(context: Context) {
+        timeMonitorJob?.cancel()
+        timeMonitorJob = CoroutineScope(Dispatchers.IO).launch {
+            while (isActive && coreController.isRunning) {
+                delay(1000)
+                var balance = MmkvManager.getTimeBalance()
+                balance -= 1000
+                if (balance < 0) balance = 0
+                MmkvManager.setTimeBalance(balance)
+
+                if (balance <= 0) {
+                    launch(Dispatchers.Main) {
+                        context.toast("Time Expired")
+                        stopVService(context)
+                    }
+                    break
+                }
+            }
+        }
     }
 
     /**
@@ -184,6 +220,8 @@ object V2RayServiceManager {
      */
     fun stopCoreLoop(): Boolean {
         val service = getService() ?: return false
+
+        timeMonitorJob?.cancel()
 
         if (coreController.isRunning) {
             CoroutineScope(Dispatchers.IO).launch {
