@@ -115,6 +115,9 @@
             android:name=".ui.SubEditActivity"
             android:exported="false" />
         <activity
+            android:name=".ui.SniScannerActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.ScScannerActivity"
             android:exported="false" />
         <activity
