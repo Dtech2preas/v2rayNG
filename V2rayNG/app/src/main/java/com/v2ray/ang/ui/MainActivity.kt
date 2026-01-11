@@ -126,6 +126,11 @@ class MainActivity : BaseActivity() {
              showImportConfigDialog()
         }
 
+        // Scanner Button Logic
+        binding.btnScanner.setOnClickListener {
+            startActivity(Intent(this, SniScannerActivity::class.java))
+        }
+
         binding.layoutTest.setOnClickListener {
             if (mainViewModel.isRunning.value == true) {
                 setTestState(getString(R.string.connection_test_testing))

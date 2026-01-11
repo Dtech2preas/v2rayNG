@@ -93,6 +93,9 @@
             android:name=".ui.ScannerActivity"
             android:exported="false" />
         <activity
+            android:name=".ui.SniScannerActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.LogcatActivity"
             android:exported="false" />
         <activity
