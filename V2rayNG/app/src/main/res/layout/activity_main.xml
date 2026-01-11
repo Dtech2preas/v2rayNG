@@ -240,6 +240,18 @@
 
             </LinearLayout>
 
+            <!-- Scanner Button -->
+            <Button
+                android:id="@+id/btn_scanner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="ZERO-RATE SCANNER"
+                android:textColor="@color/colorTextPrimary"
+                android:backgroundTint="#333333"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginBottom="8dp"/>
+
             <!-- Hidden Elements (Logic compatibility) -->
              <com.google.android.material.tabs.TabLayout
                         android:id="@+id/tab_group"
