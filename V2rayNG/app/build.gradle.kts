@@ -171,6 +171,7 @@ dependencies {
     // Intent and Utility Libraries
     implementation(libs.quickie.foss)
     implementation(libs.core)
+    implementation(libs.androidx.browser)
 
     // AndroidX Lifecycle and Architecture Components
     implementation(libs.lifecycle.viewmodel.ktx)

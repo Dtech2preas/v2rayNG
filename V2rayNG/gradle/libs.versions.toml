@@ -28,6 +28,8 @@ mockitoMockitoInline = "6.1.0"
 flexbox = "3.0.0"
 preferenceKtx = "1.2.1"
 recyclerview = "1.4.0"
+browser = "1.8.0"
+
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-swiperefreshlayout = { module = "androidx.swiperefreshlayout:swiperefreshlayout", version.ref = "swiperefreshlayout" }
@@ -62,6 +64,8 @@ mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "
 flexbox = { module = "com.google.android.flexbox:flexbox", version.ref = "flexbox" }
 recyclerview = { module = "androidx.recyclerview:recyclerview", version.ref = "recyclerview" }
 preference-ktx = { module = "androidx.preference:preference-ktx", version.ref = "preferenceKtx" }
+androidx-browser = { group = "androidx.browser", name = "browser", version.ref = "browser" }
+
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }

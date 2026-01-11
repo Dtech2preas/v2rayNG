@@ -23,6 +23,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SearchView
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.core.view.isVisible
@@ -62,6 +63,11 @@ class MainActivity : BaseActivity() {
 
     // Traffic monitor job
     private var trafficMonitorJob: Job? = null
+
+    // Ad Logic
+    private var adStartTime: Long = 0
+    private var waitingForReward = false
+    private val adUrl = "https://otieu.com/4/9515888"
 
     // Pulse animation
     private val pulseAnimation by lazy {
@@ -137,6 +143,11 @@ class MainActivity : BaseActivity() {
             mainViewModel.startUniversalUpdate()
         }
 
+        // Add Time Button Logic
+        binding.btnAddTime.setOnClickListener {
+            openAd(true)
+        }
+
         binding.recyclerView.setHasFixedSize(true)
         binding.recyclerView.layoutManager = GridLayoutManager(this, 1)
         binding.recyclerView.adapter = adapter
@@ -154,6 +165,39 @@ class MainActivity : BaseActivity() {
 
         // Check for first run universal update
         mainViewModel.checkFirstRun()
+
+        // Start polling time
+        mainViewModel.startTimePolling()
+    }
+
+    private fun openAd(forReward: Boolean) {
+        try {
+            val intent = CustomTabsIntent.Builder().build()
+            intent.launchUrl(this, Uri.parse(adUrl))
+            if (forReward) {
+                adStartTime = System.currentTimeMillis()
+                waitingForReward = true
+            }
+        } catch (e: Exception) {
+            toastError("Could not open Ad link")
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        mainViewModel.reloadServerList()
+
+        if (waitingForReward) {
+            waitingForReward = false
+            val elapsed = System.currentTimeMillis() - adStartTime
+            if (elapsed >= 10000) { // 10 seconds
+                val current = MmkvManager.getTimeBalance()
+                MmkvManager.setTimeBalance(current + 3600000) // +1 hour
+                toast("Reward Added: +1 Hour")
+            } else {
+                toast("Please watch the ad for more than 10 seconds to get a reward.")
+            }
+        }
     }
 
     private fun handleConnectClick() {
@@ -213,6 +257,9 @@ class MainActivity : BaseActivity() {
             }
         }
         mainViewModel.updateTestResultAction.observe(this) { setTestState(it) }
+        mainViewModel.remainingTime.observe(this) { timeStr ->
+            binding.tvRemainingTime.text = timeStr
+        }
         mainViewModel.isRunning.observe(this) { isRunning ->
             adapter.isRunning = isRunning
             if (isRunning) {
@@ -233,7 +280,24 @@ class MainActivity : BaseActivity() {
                 binding.layoutTest.isFocusable = true
                 startTrafficMonitor()
                 mainViewModel.testCurrentServerRealPing()
+
+                // Auto Open Ad on Connect
+                // We use a flag or check if we just transitioned?
+                // Since this runs on observation, we need to be careful not to spam.
+                // But V2RayServiceManager.startTime > 0 implies fresh connection?
+                // A better way is to use a dedicated flag in ViewModel, but for now:
+                // If it's running and we just started, we can open.
+                // But the user might rotate screen.
+                // Let's rely on V2RayServiceManager to send a message or just open here if not already opened?
+                // Simpler: Just open it. To avoid rotation re-open, we can check if service startTime is very recent?
+                // Or just use a static/member flag "hasShownAdForSession".
+                if (!hasShownAdForSession) {
+                     hasShownAdForSession = true
+                     openAd(false)
+                }
+
             } else {
+                hasShownAdForSession = false
                 // Disconnected State
                 binding.ivConnectIcon.setImageResource(android.R.drawable.ic_lock_power_off)
                 binding.viewPulse.clearAnimation()
@@ -355,12 +419,8 @@ class MainActivity : BaseActivity() {
         V2RayServiceManager.startVService(this)
     }
 
+    private var hasShownAdForSession = false
     // ... (Other methods remain similar)
-
-    public override fun onResume() {
-        super.onResume()
-        mainViewModel.reloadServerList()
-    }
 
     private fun importBatchConfig(server: String?) {
         binding.pbWaiting.show()
